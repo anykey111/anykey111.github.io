@@ -1,178 +1,81 @@
-# Quick reference
+# eframe template
 
-## Comments
+[![dependency status](https://deps.rs/repo/github/emilk/eframe_template/status.svg)](https://deps.rs/repo/github/emilk/eframe_template)
+[![Build Status](https://github.com/emilk/eframe_template/workflows/CI/badge.svg)](https://github.com/emilk/eframe_template/actions?workflow=CI)
 
-```
-    # single line comment
-    # must be separated with whitespace
-    #this-is-not-a-comment
-```
+This is a template repo for [eframe](https://github.com/emilk/egui/tree/master/eframe), a framework for writing apps using [egui](https://github.com/emilk/egui/).
 
-## Literals
+The goal is for this to be the simplest way to get started writing a GUI app in Rust.
 
-```
-    # decimal
-    7 -99 1_000
-    
-    # hex
-    0xff 0x11_EE
-    
-    # binary
-    0b11111 0b1111_1111
-    
-    # real 
-    2.78 -1.2e-5
-    
-    # string
-    "escapes \\ \" \r \n \t"          
+You can compile your app natively or for the web, and share it using Github Pages.
 
-    # boolean flag
-    true false
-    
-    # vector
-    [ 1 2 3.0 "abc" ]
+## Getting started
 
-    # no value
-    nil
+Start by clicking "Use this template" at https://github.com/emilk/eframe_template/ or follow [these instructions](https://docs.github.com/en/free-pro-team@latest/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template).
 
-    # bit-string consist of arbitrary number of bits
-    # hex digits 0..9 A..F represent 4 bit chunk of data
-    # "-" and "x" represent a single bit
-    |F1|    # 0b1111_0001
-    |x--x|  # 0b1001
-    |F1x|   # 0b1111_0001_1
-```
+Change the name of the crate: Chose a good name for your project, and change the name to it in:
+* `Cargo.toml`
+    * Update the `name` and `authors`
+* `main.rs`
+* `docs/index.html`
+    * Change the `<title>`
+    * Change the `<script src=…` line from `eframe_template.js` to `your_crate.js`
+    * Change the `wasm_bindgen(…` line from `eframe_template_bg.wasm` to `your_crate_bg.wasm` (note the `_bg`!)
+* `docs/sw.js`
+    * Change the `'./eframe_template.js'` to `./your_crate.js` (in `filesToCache` array)
+    * Change the `'./eframe_template_bg.wasm'` to `./your_crate_bg.wasm` (in `filesToCache` array)
+* Remove the web build of the old name: `rm docs/eframe_template*`
 
-## Words and variables
+### Learning about egui
 
-1. Word name consist of any symbols, but can't start with digit or double quite.
-2. Words are separated by whitespaces
-3. Variable is a special word that holds reference to the value
+`src/app.rs` contains a simple example app. This is just to give some inspiration - most of it can be removed if you like.
 
-```
-    # valid words
-    +[]
-    _"d^%$$$#112d'"d+"
-    a0000-/-)(22)
-    .99
+The official egui docs are at <https://docs.rs/egui>. If you prefer watching a video introduction, check out <https://www.youtube.com/watch?v=NtUkr_z7l84>. For inspiration, check out the [the egui web demo](https://emilk.github.io/egui/index.html) and follow the links in it to its source code.
 
-    # invalid words
-    0waa
-    9sss
-    "abc
+### Testing locally
 
-    # define global variable 
-    0 var counter
-    # set a new value 
-    10 ! counter
+Make sure you are using the latest version of stable rust by running `rustup update`.
 
-    # define a new word
-    : increment-counter
-        counter 1 + ! counter
-    ;
+`cargo run --release`
 
-    # locals
-    : shuffle3
-        local c
-        local b 
-        local a
-        b a c ;
-    1 2 3 shuffle-3
+On Linux you need to first run:
+
+`sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libspeechd-dev libxkbcommon-dev libssl-dev`
+
+On Fedora Rawhide you need to run:
+
+`dnf install clang clang-devel clang-tools-extra speech-dispatcher-devel libxkbcommon-devel pkg-config openssl-devel libxcb-devel`
+
+For running the `build_web.sh` script you also need to install `jq` and `binaryen` with your packet manager of choice.
+
+### Compiling for the web
+
+Make sure you are using the latest version of stable rust by running `rustup update`.
+
+You can compile your app to [WASM](https://en.wikipedia.org/wiki/WebAssembly) and publish it as a web page. For this you need to set up some tools. There are a few simple scripts that help you with this:
+
+``` sh
+./setup_web.sh
+./build_web.sh
+./start_server.sh
+open http://127.0.0.1:8080/
 ```
 
-## Meta evaluation and constants
+* `setup_web.sh` installs the tools required to build for web
+* `build_web.sh` compiles your code to wasm and puts it in the `docs/` folder (see below)
+* `start_server.sh` starts a local HTTP server so you can test before you publish
+* Open http://127.0.0.1:8080/ in a web browser to view
 
-```
-    # Code inside the round brackets evaluated at build time
-    ( 1 2 + )
-    
-    # define a constant
-    ( 1.0 60.0 / ) var FRAME-TIME
+The finished web app is found in the `docs/` folder (this is so that you can easily share it with [GitHub Pages](https://docs.github.com/en/free-pro-team@latest/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)). It consists of three files:
 
-    # also have the read-only access to the global environment
-    : fib dup 1 > if
-            dup 2 - fib
-            swap 1 - fib
-            +
-        endif ;
-    ( 20 fib ) var fib-of-20
-```
+* `index.html`: A few lines of HTML, CSS and JS that loads your app. **You need to edit this** (once) to replace `eframe_template` with the name of your crate!
+* `your_crate_bg.wasm`: What the Rust code compiles to.
+* `your_crate.js`: Auto-generated binding between Rust and JS.
 
-## Conditional execution
+You can test the template app at <https://emilk.github.io/eframe_template/>.
 
-```
-    true if "yes" else "no" endif println
+## Updating egui
 
-    # select one case of the multiple different choices
-    false case
-        true of 1 endof
-        false of 0 endof
-    endcase
+As of 2022, egui is in active development with frequent releases with breaking changes. [eframe_template](https://github.com/emilk/eframe_template/) will be updated in lock-step to always use the latest version of egui.
 
-    # case with fallback
-    3 case
-        0 of "a" endof
-        1 of "b" endof
-        # fallback, drop unmatched value 2 from the stack
-        drop "c"
-    endcase
-```
-
-## Basic loops
-
-```
-    # loop with pre-codnition, test condition before every iteration
-    begin remain 5 > while
-        read-more
-    repeat
-
-    # post condition, restart loop if condition is false
-    begin read-byte zero? until
-
-    # endless loop
-    begin
-        day-of-week "friday" = if
-            # leave is used to break loop execution
-            leave
-        endif 
-    repeat
-```
-    
-## Counter loops
-
-```
-    # count from 0 to 10, current loop index is accessed with "I"
-    10 0 do I print loop
-
-    # outer loop index is accessed with J
-    10 5 do # J
-        5 0 do # I
-            "J=" print J print
-            "I=" print I print
-        loop
-        newline
-    loop
-```
-
-## Tags
-
-Tag is a special data sticked to the value but not directly accessed.
-
-```
-    # stick "abc" string to the integer 10
-    10 "abc" with-tag
-    var X
-    # tag have no impact on using value
-    X 5 + println 
-    # get tag of X
-    X tag-of println
-    
-    # shorthand syntax for literal tags
-    10 . "ten"
-    10 "ten" with-tag
-
-    # stick vector
-    "text" .[ 14 . "size" "red" . "color" ]
-    "text" [ 14 "size" with-tag "red" "color" with-tag ] with-tag
-```
-
+When updating `egui` and `eframe` it is recommended you do so one version at the time, and read about the changes in [the egui changelog](https://github.com/emilk/egui/blob/master/CHANGELOG.md) and [eframe changelog](https://github.com/emilk/egui/blob/master/eframe/CHANGELOG.md).
