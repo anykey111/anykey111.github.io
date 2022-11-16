@@ -6,4 +6,4 @@ all`:
 
 push:
 	git commit -am "`cd ../xeh_playground && git log -n 1 --oneline && cd ../xeh && git log -n 1 --oneline`"
-	#git push
+	git push
